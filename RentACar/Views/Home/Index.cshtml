@@ -1,8 +1,95 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold">Welcome to RentACar</h1>
+        <p class="lead text-muted">Manage all your rental operations from one place — for users and admins alike.</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="button-container">
+                <!-- Top Row - Big Buttons with Outline -->
+                <div class="top-row">
+                    <a class="big-button" href="/Request/Create" style="background-color: #4B0082; border-color: #301934;">Create Request</a>
+                    <a class="big-button" href="/Request/MyRequests" style="background-color: #543884; border-color: #262254;">My Requests</a>
+                </div>
+
+                <!-- Bottom Row - Smaller Buttons -->
+                <div class="bottom-row">
+                    <a class="small-button" href="/Request" style="background-color: #262254;">Request Details</a>
+                    <a class="small-button" href="/Auto" style="background-color: #A13670;">Auto Management</a>
+                    <a class="small-button" href="/Request/Index" style="background-color: #E04176;">All Requests</a>
+                    <a class="small-button" href="/User" style="background-color: #FFA45E;">User Management</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center mt-5 text-muted">
+        © 2025 - RentACar - <a href="/Privacy">Privacy Policy</a>
+    </footer>
 </div>
+
+<style>
+    .button-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+        padding: 20px;
+    }
+
+    .top-row {
+        display: flex;
+        gap: 40px;
+        margin-bottom: 20px;
+    }
+
+    .bottom-row {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .big-button {
+        width: 200px;
+        height: 80px;
+        border: 3px solid;
+        border-radius: 12px;
+        font-size: 18px;
+        font-weight: bold;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .small-button {
+        width: 160px;
+        height: 60px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: bold;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    }
+
+        .big-button:hover, .small-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+</style>

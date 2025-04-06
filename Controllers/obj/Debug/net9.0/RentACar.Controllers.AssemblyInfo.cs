@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RentACar.Controllers")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6b38ca25900bdf439202163449c0d7e448a4b389")]
 [assembly: System.Reflection.AssemblyProductAttribute("RentACar.Controllers")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RentACar.Controllers")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
