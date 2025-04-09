@@ -13,7 +13,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+/// <summary>
+/// Controller responsible for managing user-related operations such as creating, editing, deleting, and viewing users.
+/// </summary>
 [Authorize(Roles = "Administrator")]
+
 public class UserController : Controller
 {
     private readonly IUserRepository _userRepository;
@@ -22,6 +26,13 @@ public class UserController : Controller
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly SignInManager<User> _signInManager;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UserController"/> class.
+    /// </summary>
+    /// <param name="userRepository">Repository for user data operations.</param>
+    /// <param name="userManager">Manager for user identity operations.</param>
+    /// <param name="roleManager">Manager for role identity operations.</param>
+    /// <param name="signInManager">Manager for user sign-in operations.</param>
     public UserController(
         IUserRepository userRepository,
         UserManager<User> userManager,
@@ -34,6 +45,10 @@ public class UserController : Controller
         _signInManager = signInManager;
     }
 
+    /// <summary>
+    /// Displays a list of all users with their roles.
+    /// </summary>
+    /// <returns>A view containing a list of users.</returns>
     public async Task<IActionResult> Index()
     {
         var users = await _userRepository.GetAllAsync();
@@ -44,14 +59,14 @@ public class UserController : Controller
             var roles = await _userManager.GetRolesAsync(user);
             var userVM = new UserVM
             {
-                Id = user.Id,  // Make sure to include this
+                Id = user.Id,
                 Firstname = user.Firstname,
                 Surname = user.Surname,
                 NIN = user.NIN,
                 PhoneNumber = user.PhoneNumber,
                 Email = user.Email,
                 Requests = user.Requests,
-                Role = roles.FirstOrDefault()  // Add the role here
+                Role = roles.FirstOrDefault()
             };
             userVMs.Add(userVM);
         }
@@ -59,6 +74,11 @@ public class UserController : Controller
         return View(userVMs);
     }
 
+    /// <summary>
+    /// Displays details of a specific user.
+    /// </summary>
+    /// <param name="id">The ID of the user.</param>
+    /// <returns>A view containing user details.</returns>
     public async Task<IActionResult> Details(string id)
     {
         var user = await _userRepository.GetByIdAsync(id);
@@ -78,12 +98,21 @@ public class UserController : Controller
         return View(vm);
     }
 
+    /// <summary>
+    /// Displays the user creation form.
+    /// </summary>
+    /// <returns>A view for creating a new user.</returns>
     [AllowAnonymous]
     public IActionResult Create()
     {
         return View(new CreateUserVM());
     }
 
+    /// <summary>
+    /// Handles the creation of a new user.
+    /// </summary>
+    /// <param name="vm">The view model containing user data.</param>
+    /// <returns>Redirects to the home page if successful, otherwise redisplays the form with validation errors.</returns>
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
@@ -115,21 +144,25 @@ public class UserController : Controller
                 PhoneNumber = vm.PhoneNumber
             };
 
-            // Use the password from the view model instead of hardcoded one
+
             var result = await _userRepository.AddAsync(user, vm.Password);
 
             if (result)
             {
-                // Optionally sign in the user immediately after registration
                 await _signInManager.SignInAsync(user, isPersistent: false);
                 return RedirectToAction("Index", "Home");
             }
         }
 
-        // If we got this far, something failed, redisplay form
+
         return View(vm);
     }
 
+    /// <summary>
+    /// Displays the user edit form.
+    /// </summary>
+    /// <param name="id">The ID of the user to edit.</param>
+    /// <returns>A view for editing the user.</returns>
     [HttpGet]
     public async Task<IActionResult> Edit(string id)
     {
@@ -151,6 +184,12 @@ public class UserController : Controller
         ViewBag.Roles = new SelectList(await _roleManager.Roles.ToListAsync(), "Name", "Name");
         return View(vm);
     }
+
+    /// <summary>
+    /// Handles the editing of a user.
+    /// </summary>
+    /// <param name="model">The view model containing updated user data.</param>
+    /// <returns>Redirects to the user list if successful, otherwise redisplays the form with validation errors.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(EditUserVM model)
@@ -161,14 +200,13 @@ public class UserController : Controller
         log.AppendLine($"Name: {model.Firstname} {model.Surname}");
         log.AppendLine($"Role: {model.Role}");
 
-        // Log all form values
+
         foreach (var key in Request.Form.Keys)
         {
             log.AppendLine($"{key}: {Request.Form[key]}");
         }
 
         System.Diagnostics.Debug.WriteLine(log.ToString());
-        // Debug: Verify model received
         Console.WriteLine($"--- EDIT POST STARTED ---");
         Console.WriteLine($"Model ID: {model?.Id ?? "NULL"}");
         Console.WriteLine($"Name: {model?.Firstname} {model?.Surname}");
@@ -188,7 +226,6 @@ public class UserController : Controller
 
         try
         {
-            // Get user with tracking
             var user = await _userManager.Users
                 .Include(u => u.Requests)
                 .FirstOrDefaultAsync(u => u.Id == model.Id);
@@ -199,17 +236,15 @@ public class UserController : Controller
                 return NotFound();
             }
 
-            // Debug before/after values
             Console.WriteLine($"🔄 Updating user {user.Id}");
             Console.WriteLine($"FROM: {user.Firstname} {user.Surname} | {user.NIN} | {user.PhoneNumber}");
             Console.WriteLine($"TO: {model.Firstname} {model.Surname} | {model.PhoneNumber}");
 
-            // Update properties
             user.Firstname = model.Firstname;
             user.Surname = model.Surname;
             user.PhoneNumber = model.PhoneNumber;
 
-            // Save changes
+
             var updateResult = await _userManager.UpdateAsync(user);
             if (!updateResult.Succeeded)
             {
@@ -224,7 +259,8 @@ public class UserController : Controller
                 return View(model);
             }
 
-            // Handle role change
+
+
             var currentRoles = await _userManager.GetRolesAsync(user);
             var currentRole = currentRoles.FirstOrDefault();
 
@@ -267,6 +303,10 @@ public class UserController : Controller
         }
     }
 
+    /// <summary>
+    /// Retrieves a list of roles for dropdown selection.
+    /// </summary>
+    /// <returns>A <see cref="SelectList"/> of roles.</returns>
     private async Task<SelectList> GetRolesSelectList()
     {
         try
@@ -286,6 +326,11 @@ public class UserController : Controller
         }
     }
 
+    /// <summary>
+    /// Toggles the role of a user.
+    /// </summary>
+    /// <param name="id">The ID of the user whose role is to be toggled.</param>
+    /// <returns>Redirects to the edit page of the user.</returns>
     [HttpPost]
     public async Task<IActionResult> ToggleRole(string id)
     {
@@ -297,6 +342,12 @@ public class UserController : Controller
         return RedirectToAction(nameof(Edit), new { id });
     }
 
+
+    /// <summary>
+    /// Displays the user deletion confirmation page.
+    /// </summary>
+    /// <param name="id">The ID of the user to delete.</param>
+    /// <returns>A view for confirming user deletion.</returns>
     public async Task<IActionResult> Delete(string id)
     {
         var user = await _userRepository.GetByIdAsync(id);
@@ -313,6 +364,11 @@ public class UserController : Controller
         return View(vm);
     }
 
+    /// <summary>
+    /// Handles the deletion of a user.
+    /// </summary>
+    /// <param name="id">The ID of the user to delete.</param>
+    /// <returns>Redirects to the user list if successful, otherwise redisplays the confirmation page with errors.</returns>
     [HttpPost, ActionName("DeleteUser")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteUser(string id)

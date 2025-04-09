@@ -4,10 +4,24 @@
 
 namespace RentACar.Data.Migrations
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// Represents a migration that modifies the database schema by renaming the "BookingPeriod" table to "BookingPeriods",
+    /// updating related foreign keys and indexes, and removing the "Number" column from the "AspNetUsers" table.
+    /// </summary>
     public partial class Fixing : Migration
     {
-        /// <inheritdoc />
+        /// <summary>
+        /// Defines the operations to apply the migration.
+        /// This method:
+        /// - Drops the foreign key constraint between "BookingPeriod" and "Autos".
+        /// - Drops the primary key of the "BookingPeriod" table.
+        /// - Removes the "Number" column from the "AspNetUsers" table.
+        /// - Renames the "BookingPeriod" table to "BookingPeriods".
+        /// - Renames the index associated with the "AutoId" column.
+        /// - Adds a new primary key to the renamed "BookingPeriods" table.
+        /// - Re-establishes the foreign key constraint with the updated table name.
+        /// </summary>
+        /// <param name="migrationBuilder">The builder used to define the migration operations.</param>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
@@ -45,7 +59,18 @@ namespace RentACar.Data.Migrations
                 onDelete: ReferentialAction.Cascade);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Reverts the operations defined in the <see cref="Up"/> method.
+        /// This method:
+        /// - Drops the foreign key constraint between "BookingPeriods" and "Autos".
+        /// - Drops the primary key of the "BookingPeriods" table.
+        /// - Renames the "BookingPeriods" table back to "BookingPeriod".
+        /// - Renames the index associated with the "AutoId" column back to its original name.
+        /// - Adds the "Number" column back to the "AspNetUsers" table.
+        /// - Re-establishes the primary key for the "BookingPeriod" table.
+        /// - Re-establishes the foreign key constraint with the original table name.
+        /// </summary>
+        /// <param name="migrationBuilder">The builder used to define the migration operations.</param>
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
