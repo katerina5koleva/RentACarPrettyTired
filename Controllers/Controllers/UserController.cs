@@ -122,7 +122,6 @@ public class UserController : Controller
             {
                 // Optionally sign in the user immediately after registration
                 await _signInManager.SignInAsync(user, isPersistent: false);
-
                 return RedirectToAction("Index", "Home");
             }
         }
@@ -286,44 +285,6 @@ public class UserController : Controller
             return new SelectList(Enumerable.Empty<SelectListItem>());
         }
     }
-    //[HttpPost]
-    //[ValidateAntiForgeryToken]
-    //public async Task<IActionResult> Edit(EditUserVM model)
-    //{
-    //    if (!ModelState.IsValid)
-    //    {
-    //        ViewBag.Roles = new SelectList(await _roleManager.Roles.ToListAsync(), "Name", "Name");
-    //        return View(model);
-    //    }
-    //
-    //    var user = await _userRepository.GetByIdAsync(model.Id);
-    //    if (user == null) return NotFound();
-    //
-    //    // Update basic info
-    //    user.Firstname = model.Firstname;
-    //    user.Surname = model.Surname;
-    //    user.NIN = model.NIN;
-    //    user.PhoneNumber = model.PhoneNumber;
-    //
-    //    // Update using repository
-    //    var updateResult = await _userRepository.UpdateAsync(user);
-    //
-    //    if (!updateResult)
-    //    {
-    //        ModelState.AddModelError(string.Empty, "Failed to update user");
-    //        ViewBag.Roles = new SelectList(await _roleManager.Roles.ToListAsync(), "Name", "Name");
-    //        return View(model);
-    //    }
-    //
-    //    // Handle role change through service
-    //    var currentRole = (await _userManager.GetRolesAsync(user)).FirstOrDefault();
-    //    if (model.Role != currentRole)
-    //    {
-    //        await _userService.ChangeRoleAsync(user.Id);
-    //    }
-    //
-    //    return RedirectToAction(nameof(Index));
-    //}
 
     [HttpPost]
     public async Task<IActionResult> ToggleRole(string id)

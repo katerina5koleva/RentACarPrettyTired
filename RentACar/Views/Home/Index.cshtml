@@ -5,32 +5,32 @@
 <div class="container py-5">
     <div class="text-center mb-5">
         <h1 class="display-4 fw-bold">Welcome to RentACar</h1>
-        <p class="lead text-muted">Manage all your rental operations from one place — for users and admins alike.</p>
+        <p class="lead text-muted">Manage all your rental operations from one place!</p>
     </div>
 
     <div class="row justify-content-center">
         <div class="col-md-10">
             <div class="button-container">
-                <!-- Top Row - Big Buttons with Outline -->
+                @if(!User.IsInRole("Administrator"))
+                {
+                    <!-- Top Row - Big Buttons with Outline -->
                 <div class="top-row">
                     <a class="big-button" href="/Request/Create" style="background-color: #4B0082; border-color: #301934;">Create Request</a>
                     <a class="big-button" href="/Request/MyRequests" style="background-color: #543884; border-color: #262254;">My Requests</a>
                 </div>
-
-                <!-- Bottom Row - Smaller Buttons -->
-                <div class="bottom-row">
-                    <a class="small-button" href="/Request" style="background-color: #262254;">Request Details</a>
-                    <a class="small-button" href="/Auto" style="background-color: #A13670;">Auto Management</a>
-                    <a class="small-button" href="/Request/Index" style="background-color: #E04176;">All Requests</a>
-                    <a class="small-button" href="/User" style="background-color: #FFA45E;">User Management</a>
-                </div>
+                }
+                @if (User.IsInRole("Administrator"))
+                {
+                    <!-- Bottom Row - Smaller Buttons -->
+                    <div class="bottom-row">
+                        <a class="big-button" href="/Auto" style="background-color: #A13670; border-color: #7B3651;">Auto Management</a>
+                        <a class="big-button" href="/Request/Index" style="background-color: #E04176; border-color: #B93D65;">All Requests</a>
+                        <a class="big-button" href="/User" style="background-color: #FFA45E; border-color: #FF7F4F;">User Management</a>
+                    </div>
+                }
             </div>
         </div>
     </div>
-
-    <footer class="text-center mt-5 text-muted">
-        © 2025 - RentACar - <a href="/Privacy">Privacy Policy</a>
-    </footer>
 </div>
 
 <style>

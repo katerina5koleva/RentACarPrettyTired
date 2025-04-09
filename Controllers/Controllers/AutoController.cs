@@ -24,7 +24,7 @@ namespace RentACar.Controllers.Controllers
            _photoService = photoService;
         }
 
-        [Authorize(Roles = "Administrator")]
+        [Authorize]
         public async Task<IActionResult> Index()
         {
             var autos = await _autoRepository.GetAllAutosAsync();
