@@ -4,25 +4,35 @@
 
 namespace RentACar.Data.Migrations
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// This migration ensures that the "AspNetUsers" table is updated to enforce stricter data integrity rules
+    /// by making certain columns non-nullable and setting default values. It also updates the existing admin user
+    /// with predefined values and removes the "Discriminator" column from the table.
+    /// </summary>
     public partial class FixedAdmin : Migration
     {
-        /// <inheritdoc />
+        /// <summary>
+        /// Applies the migration by:
+        /// 1. Updating the existing admin user with specific values.
+        /// 2. Altering columns in the "AspNetUsers" table to make them non-nullable with default values.
+        /// 3. Removing the "Discriminator" column from the "AspNetUsers" table.
+        /// </summary>
+        /// <param name="migrationBuilder">The migration builder used to define the operations to apply.</param>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // First update the existing admin user before altering columns
+            // Update the existing admin user with predefined values
             migrationBuilder.Sql(@"
-                UPDATE AspNetUsers 
-                SET 
-                    Firstname = 'Admin',
-                    Surname = 'User',
-                    NIN = 'ADMIN123456',
-                    PhoneNumber = '+1234567890',
-                    PhoneNumberConfirmed = 1
-                WHERE Id = 'a820ccf9-54ac-4047-b4b5-48dab0dc962b'
-            ");
+                    UPDATE AspNetUsers 
+                    SET 
+                        Firstname = 'Admin',
+                        Surname = 'User',
+                        NIN = 'ADMIN123456',
+                        PhoneNumber = '+1234567890',
+                        PhoneNumberConfirmed = 1
+                    WHERE Id = 'a820ccf9-54ac-4047-b4b5-48dab0dc962b'
+                ");
 
-            // Then alter columns to be non-nullable
+            // Alter columns to be non-nullable and set default values
             migrationBuilder.AlterColumn<string>(
                 name: "Surname",
                 table: "AspNetUsers",
@@ -75,16 +85,22 @@ namespace RentACar.Data.Migrations
                 oldMaxLength: 256,
                 oldNullable: true);
 
-            // Remove Discriminator column if it exists
+            // Remove the "Discriminator" column from the table
             migrationBuilder.DropColumn(
                 name: "Discriminator",
                 table: "AspNetUsers");
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Reverts the migration by:
+        /// 1. Reverting the column changes to allow null values.
+        /// 2. Adding back the "Discriminator" column with its original definition.
+        /// Note: The admin user data update is not reverted as the column definitions will allow NULLs again.
+        /// </summary>
+        /// <param name="migrationBuilder">The migration builder used to define the operations to revert.</param>
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // Revert column changes
+            // Revert column changes to allow null values
             migrationBuilder.AlterColumn<string>(
                 name: "Surname",
                 table: "AspNetUsers",
@@ -127,7 +143,7 @@ namespace RentACar.Data.Migrations
                 oldType: "nvarchar(256)",
                 oldMaxLength: 256);
 
-            // Add back Discriminator column
+            // Add back the "Discriminator" column
             migrationBuilder.AddColumn<string>(
                 name: "Discriminator",
                 table: "AspNetUsers",
@@ -135,9 +151,6 @@ namespace RentACar.Data.Migrations
                 maxLength: 13,
                 nullable: false,
                 defaultValue: "IdentityUser");
-
-            // Note: We don't need to revert the admin user data update in Down()
-            // as the column definitions will allow NULLs again
         }
     }
 }

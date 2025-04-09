@@ -5,10 +5,20 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace RentACar.Data.Migrations
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// Represents a migration for modifying the database schema to include a new "BookingPeriod" table
+    /// and update existing schema definitions for user tokens and logins.
+    /// </summary>
     public partial class Booking : Migration
     {
-        /// <inheritdoc />
+        /// <summary>
+        /// Defines the operations to apply the migration to the database.
+        /// This includes:
+        /// - Dropping the "IsAvailable" column from the "Autos" table.
+        /// - Altering the schema of "AspNetUserTokens" and "AspNetUserLogins" tables to increase the size of certain string columns.
+        /// - Creating a new "BookingPeriod" table with columns for start and end dates, and a foreign key to the "Autos" table.
+        /// </summary>
+        /// <param name="migrationBuilder">The builder used to define the migration operations.</param>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
@@ -78,7 +88,14 @@ namespace RentACar.Data.Migrations
                 column: "AutoId");
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Defines the operations to revert the migration from the database.
+        /// This includes:
+        /// - Dropping the "BookingPeriod" table.
+        /// - Re-adding the "IsAvailable" column to the "Autos" table.
+        /// - Reverting the schema changes to "AspNetUserTokens" and "AspNetUserLogins" tables.
+        /// </summary>
+        /// <param name="migrationBuilder">The builder used to define the rollback operations.</param>
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(

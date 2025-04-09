@@ -4,10 +4,19 @@
 
 namespace RentACar.Data.Migrations
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// Represents a migration that applies the last database updates for the RentACar application.
+    /// This migration modifies the "AspNetUsers" table by altering columns and adding unique indexes.
+    /// </summary>
     public partial class LastDBUpdates : Migration
     {
-        /// <inheritdoc />
+        /// <summary>
+        /// Applies the migration changes to the database.
+        /// - Alters the "UserName" column to make it non-nullable with a default value and a maximum length of 256.
+        /// - Alters the "NIN" column to make it non-nullable and sets its type to "nvarchar(450)".
+        /// - Adds unique indexes for the "Email", "NIN", and "UserName" columns in the "AspNetUsers" table.
+        /// </summary>
+        /// <param name="migrationBuilder">The builder used to define the migration operations.</param>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<string>(
@@ -49,7 +58,13 @@ namespace RentACar.Data.Migrations
                 unique: true);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Reverts the migration changes from the database.
+        /// - Removes the unique indexes for the "Email", "NIN", and "UserName" columns in the "AspNetUsers" table.
+        /// - Reverts the "UserName" column to its previous nullable state with a maximum length of 256.
+        /// - Reverts the "NIN" column to its previous type of "nvarchar(max)".
+        /// </summary>
+        /// <param name="migrationBuilder">The builder used to define the migration operations.</param>
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropIndex(

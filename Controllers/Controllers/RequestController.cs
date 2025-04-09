@@ -10,6 +10,10 @@ using System.Security.Claims;
 
 namespace RentACar.Controllers
 {
+    /// <summary>
+    /// The RequestController handles all operations related to requests in the RentACar application.
+    /// It includes actions for creating, viewing, approving, declining, and deleting requests.
+    /// </summary>
     [Authorize]
     public class RequestController : Controller
     {
@@ -18,7 +22,15 @@ namespace RentACar.Controllers
         private readonly IBookingPeriodRepository _bookingPeriodRepository;
         private readonly ILogger<HomeController> _logger;
 
-        public RequestController( IRequestRepository requestRepository, IAutoRepository autoRepository, IBookingPeriodRepository bookingPeriodRepository, ILogger<HomeController> logger)
+        /// <summary>
+        /// Initializes a new instance of the RequestController class.
+        /// </summary>
+        /// <param name="requestRepository">The request repository for managing request data.</param>
+        /// <param name="autoRepository">The auto repository for managing vehicle data.</param>
+        /// <param name="bookingPeriodRepository">The booking period repository for managing booking data.</param>
+        /// <param name="logger">The logger for logging errors and information.</param>
+
+        public RequestController(IRequestRepository requestRepository, IAutoRepository autoRepository, IBookingPeriodRepository bookingPeriodRepository, ILogger<HomeController> logger)
         {
             _requestRepository = requestRepository;
             _autoRepository = autoRepository;
@@ -26,12 +38,18 @@ namespace RentACar.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// Displays a list of all requests with optional filtering and sorting.
+        /// </summary>
+        /// <param name="filter">The filter to apply (e.g., "all", "pending", "processed").</param>
+        /// <param name="sortOrder">The sort order to apply (e.g., "newest", "oldest", "status").</param>
+        /// <returns>A view displaying the filtered and sorted list of requests.</returns>
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Index(string filter = "all", string sortOrder = "newest")
         {
             IEnumerable<Request> requests;
 
-            // Apply filter
+
             switch (filter.ToLower())
             {
                 case "pending":
@@ -45,21 +63,25 @@ namespace RentACar.Controllers
                     break;
             }
 
-            // Apply sorting
+
             requests = sortOrder.ToLower() switch
             {
                 "oldest" => requests.OrderBy(r => r.DateOfRequest),
                 "status" => requests.OrderBy(r => r.IsApproved),
-                _ => requests.OrderByDescending(r => r.DateOfRequest) // default: newest first
+                _ => requests.OrderByDescending(r => r.DateOfRequest)
             };
 
-            // Pass filter and sort options to view
+
             ViewBag.CurrentFilter = filter;
             ViewBag.CurrentSort = sortOrder;
 
             return View(requests);
         }
 
+        /// <summary>
+        /// Displays a list of requests created by the currently logged-in user.
+        /// </summary>
+        /// <returns>A view displaying the user's requests.</returns>
         [Authorize(Roles = "BasicUser")]
         public async Task<IActionResult> MyRequests()
         {
@@ -68,6 +90,11 @@ namespace RentACar.Controllers
             return View(requests);
         }
 
+        /// <summary>
+        /// Displays the details of a specific request.
+        /// </summary>
+        /// <param name="id">The ID of the request to view.</param>
+        /// <returns>A view displaying the request details, or an error if the request is not found or access is denied.</returns>
         public async Task<IActionResult> Details(int id)
         {
             var request = await _requestRepository.GetRequestByIdAsync(id);
@@ -88,6 +115,10 @@ namespace RentACar.Controllers
             return View(request);
         }
 
+        /// <summary>
+        /// Displays the form for creating a new request.
+        /// </summary>
+        /// <returns>A view displaying the request creation form.</returns>
         [Authorize(Roles = "BasicUser")]
         [HttpGet]
         public IActionResult Create()
@@ -100,6 +131,12 @@ namespace RentACar.Controllers
             return View(model);
         }
 
+        /// <summary>
+        /// Checks the availability of vehicles for the specified pick-up and return dates.
+        /// </summary>
+        /// <param name="pickUpDate">The pick-up date.</param>
+        /// <param name="returnDate">The return date.</param>
+        /// <returns>A partial view displaying available vehicles, or an error if the dates are invalid.</returns>
         [Authorize(Roles = "BasicUser")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -107,7 +144,7 @@ namespace RentACar.Controllers
         {
             try
             {
-                // Basic validation
+
                 if (pickUpDate == default || returnDate == default)
                 {
                     return BadRequest("Both dates are required");
@@ -123,10 +160,10 @@ namespace RentACar.Controllers
                     return BadRequest("Return date must be after pick-up date");
                 }
 
-                // Get available autos
+
                 var availableAutos = await _autoRepository.GetAllAutosFreeAsync(pickUpDate.Date, returnDate.Date);
 
-                // Return the available autos as a partial view
+
                 var model = new CreateRequestVM
                 {
                     AvailableAutos = availableAutos,
@@ -134,7 +171,7 @@ namespace RentACar.Controllers
                     ReturnDate = returnDate
                 };
 
-                return PartialView("_AutoSelectionPartial", model); // This should be the partial view that displays available autos
+                return PartialView("_AutoSelectionPartial", model);
             }
             catch (Exception ex)
             {
@@ -143,6 +180,11 @@ namespace RentACar.Controllers
             }
         }
 
+        /// <summary>
+        /// Creates a new request based on the provided data.
+        /// </summary>
+        /// <param name="model">The data for the new request.</param>
+        /// <returns>A redirect to the user's requests if successful, or the creation form with errors if validation fails.</returns>
         [Authorize(Roles = "BasicUser")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -151,7 +193,7 @@ namespace RentACar.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            // Ensure the auto is still available
+
             var isAvailable = await _bookingPeriodRepository.IsAutoAvailableAsync(
                 model.AutoId,
                 model.PickUpDate,
@@ -171,7 +213,7 @@ namespace RentACar.Controllers
                 return View(model);
             }
 
-            // Create request
+
             var request = new Request
             {
                 UserId = User.FindFirstValue(ClaimTypes.NameIdentifier),
@@ -186,7 +228,11 @@ namespace RentACar.Controllers
             return RedirectToAction("MyRequests");
         }
 
-
+        /// <summary>
+        /// Approves a specific request.
+        /// </summary>
+        /// <param name="id">The ID of the request to approve.</param>
+        /// <returns>A redirect to the request list with a success or error message.</returns>
         [HttpPost]
         [Authorize(Roles = "Administrator")]
         [ValidateAntiForgeryToken]
@@ -203,6 +249,11 @@ namespace RentACar.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        /// <summary>
+        /// Declines a specific request.
+        /// </summary>
+        /// <param name="id">The ID of the request to decline.</param>
+        /// <returns>A redirect to the request list with a success or error message.</returns>
         [HttpPost]
         [Authorize(Roles = "Administrator")]
         [ValidateAntiForgeryToken]
@@ -219,6 +270,11 @@ namespace RentACar.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        /// <summary>
+        /// Displays the confirmation page for deleting a specific request.
+        /// </summary>
+        /// <param name="id">The ID of the request to delete.</param>
+        /// <returns>A view displaying the delete confirmation page, or an error if the request is not found or access is denied.</returns>
         public async Task<IActionResult> Delete(int id)
         {
             var request = await _requestRepository.GetRequestByIdAsync(id);
@@ -236,6 +292,11 @@ namespace RentACar.Controllers
             return View(request);
         }
 
+        /// <summary>
+        /// Deletes a specific request after confirmation.
+        /// </summary>
+        /// <param name="id">The ID of the request to delete.</param>
+        /// <returns>A redirect to the user's requests with a success or error message.</returns>
         [HttpPost, ActionName("DeleteConfirmed")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
