@@ -1,69 +1,72 @@
 ﻿@using RentACar.Data.ViewModels
 @model CreateRequestVM
 
-<form asp-action="Create" method="post" id="bookingForm">
-    <input type="hidden" asp-for="AutoId" id="AutoId" />
-
-    @if (Model.AvailableAutos != null && Model.AvailableAutos.Any())
-    {
-        <div class="mt-4">
-            <h4>Available Vehicles</h4>
-            <div class="row row-cols-1 row-cols-md-3 g-4">
-                @foreach (var auto in Model.AvailableAutos)
-                {
-                    <div class="col">
-                        <div class="card h-100" data-auto-id="@auto.Id">
-                            <img src="@auto.Image.Replace("http://", "https://")"
-                                 class="card-img-top"
-                                 alt="@auto.Brand @auto.Model"
-                                 style="height: 180px; object-fit: cover;">
-                            <div class="card-body">
-                                <h5 class="card-title">@auto.Brand @auto.Model</h5>
-                                <p class="card-text">
-                                    <span class="badge bg-primary">@auto.Year</span>
-                                    <span class="badge bg-success">@auto.PricePerDay.ToString("C")/day</span>
-                                </p>
-                                <p class="card-text">
-                                    <i class="bi bi-people-fill"></i> @auto.PassengerSeats Seats
-                                </p>
-                            </div>
-                            <div class="card-footer bg-transparent">
-                                <button type="button" class="btn btn-primary w-100"
-                                        onclick="selectAuto(@auto.Id)">
-                                    Select This Vehicle
-                                </button>
-                            </div>
+@if (Model.AvailableAutos != null && Model.AvailableAutos.Any())
+{
+    <div class="mt-4">
+        <h4>Available Vehicles</h4>
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            @foreach (var auto in Model.AvailableAutos)
+            {
+                <div class="col">
+                    <div class="card h-100" data-auto-id="@auto.Id">
+                        <img src="@auto.Image.Replace("http://", "https://")"
+                             class="card-img-top"
+                             alt="@auto.Brand @auto.Model"
+                             style="height: 180px; object-fit: cover;">
+                        <div class="card-body">
+                            <h5 class="card-title">@auto.Brand @auto.Model</h5>
+                            <p class="card-text">
+                                <span class="badge bg-primary">@auto.Year</span>
+                                <span class="badge bg-success">@auto.PricePerDay.ToString("C")/day</span>
+                            </p>
+                            <p class="card-text">
+                                <i class="bi bi-people-fill"></i> @auto.PassengerSeats Seats
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <button type="button" class="btn btn-primary w-100"
+                                    onclick="selectAuto(@auto.Id)">
+                                Select This Vehicle
+                            </button>
                         </div>
                     </div>
-                }
-                <input type="hidden" asp-for="AutoId" id="AutoId" />
-            </div>
+                </div>
+            }
         </div>
 
-        <button type="submit" class="btn btn-success mt-3">Confirm Booking</button>
-    }
-    else
-    {
-        <div class="alert alert-warning mt-4">
-            No vehicles available for the selected dates. Please try different dates.
-        </div>
-    }
-</form>
+        <input type="hidden" id="partialPickUpDate" value="@Model.PickUpDate.ToString("yyyy-MM-dd")" />
+        <input type="hidden" id="partialReturnDate" value="@Model.ReturnDate.ToString("yyyy-MM-dd")" />
+    </div>
+}
+else
+{
+    <div class="alert alert-warning mt-4">
+        No vehicles available for the selected dates. Please try different dates.
+    </div>
+}
+
 
 
 @section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-ajax-unobtrusive/3.2.6/jquery.unobtrusive-ajax.min.js"></script>
+
     <script>
             function selectAuto(autoId) {
             console.log("Selecting Auto ID: " + autoId);
 
-            // Set the selected auto ID in the hidden field
-            const autoInput = document.getElementById('AutoId');
-            autoInput.value = autoId;  // properly sets hidden input value
+        let pickUpDate = $('#partialPickUpDate').val();
+        let returnDate = $('#partialReturnDate').val();
 
-            // Visual feedback: Highlight the selected card
-            document.querySelectorAll('.card').forEach(card => {
-                card.classList.remove('border-primary', 'border-3');
-            });
+        console.log("Selected PickUpDate:", pickUpDate);
+        console.log("Selected ReturnDate:", returnDate);
+
+        $('#bookingAutoId').val(autoId);
+        $('#bookingPickUpDate').val(pickUpDate);
+        $('#bookingReturnDate').val(returnDate);
+
+        $('#bookingForm').removeClass('d-none');
 
             // Add border to the selected card
             document.querySelector(`[data-auto-id='${autoId}']`).classList.add('border-primary', 'border-3');
@@ -73,10 +76,5 @@
                 behavior: 'smooth'
             });
         }
-
-
     </script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-ajax-unobtrusive/3.2.6/jquery.unobtrusive-ajax.min.js"></script>
-
 }

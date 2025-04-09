@@ -14,7 +14,7 @@
     }
 
     <form id="availabilityForm" method="post" asp-action="CheckAvailability" data-ajax="true" data-ajax-update="#autoSelection" data-ajax-mode="replace">
-        >
+        
         @Html.AntiForgeryToken()
         <div class="row g-3">
             <div class="col-md-6">
@@ -44,76 +44,92 @@
     </div>
 
 
-    <!-- Hidden form for final submission -->
-    <form asp-action="Create" method="post" id="bookingForm" class="d-none mt-4">
-        <input type="hidden" asp-for="PickUpDate" />
-        <input type="hidden" asp-for="ReturnDate" />
-        <input type="hidden" asp-for="AutoId" />
-        <button type="submit" class="btn btn-success">Confirm Booking</button>
+    <!-- Final booking form -->
+    <form asp-action="Create" method="post" id="bookingForm" class="@(Model.AvailableAutos?.Any() == true ? "" : "d-none") mt-4">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="PickUpDate" id="bookingPickUpDate" name="PickUpDate" />
+        <input type="hidden" asp-for="ReturnDate" id="bookingReturnDate" name="ReturnDate" />
+        <input type="hidden" asp-for="AutoId" id="bookingAutoId" name="AutoId" />
+        <button type="submit" class="btn btn-success" id="confirmBookingBtn">Confirm Booking</button>
     </form>
 </div>
 
 @section Scripts {
-    <!-- Load jQuery FIRST -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- Then AJAX Unobtrusive -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-ajax-unobtrusive/3.2.6/jquery.unobtrusive-ajax.min.js"></script>
-    <!-- Then validation -->
     <partial name="_ValidationScriptsPartial" />
 
     <script>
         $(document).ready(function() {
-            // Debugging - log initial state
-            console.log("Document ready - initial PickUpDate:", $('#PickUpDate').val());
-            console.log("Document ready - initial ReturnDate:", $('#ReturnDate').val());
+            console.log("Initialization started");
 
-            // 1. Handle AJAX errors
-            $(document).ajaxError(function(event, xhr) {
-                console.error("AJAX Error:", xhr.responseText);
-                $('#loadingSpinner').addClass('d-none');
-                let errorMsg = xhr.responseText || "Error checking availability";
-                $('#autoSelection').html(`<div class="alert alert-danger">${errorMsg}</div>`);
-            });
+            // Debug initial state
+            console.log("Initial PickUp:", $('#PickUpDate').val());
+            console.log("Initial Return:", $('#ReturnDate').val());
 
-            // 2. Handle successful availability check
+            // 1. Handle AJAX success
             $(document).ajaxSuccess(function(event, xhr, settings) {
                 if (settings.url.includes("CheckAvailability")) {
-                    console.log("AJAX Success - Dates:",
-                        $('#PickUpDate').val(), $('#ReturnDate').val());
+                    console.log("AJAX Success - Dates:", $('#PickUpDate').val(), $('#ReturnDate').val());
 
-                    // Update the FINAL form's hidden fields
-                    $('#finalPickUpDate').val($('#PickUpDate').val());
-                    $('#finalReturnDate').val($('#ReturnDate').val());
+                    // Update FINAL form fields
+                    $('#bookingPickUpDate').val($('#PickUpDate').val());
+                    $('#bookingReturnDate').val($('#ReturnDate').val());
 
-                    // Debug output
-                    console.log("Updated final dates:",
-                        $('#finalPickUpDate').val(), $('#finalReturnDate').val());
+                    console.log("Final form updated:", {
+                        pickUp: $('#bookingPickUpDate').val(),
+                        return: $('#bookingReturnDate').val()
+                    });
 
-                    // Show booking form if vehicles available
                     if ($('#autoSelection .card').length > 0) {
                         $('#bookingForm').removeClass('d-none');
                     }
                 }
             });
 
-            // 3. Handle vehicle selection
-            $(document).on('click', '.select-vehicle', function() {
-                const autoId = $(this).data('autoid');
+            // 2. Handle vehicle selection
+            window.selectAuto = function(autoId) {
                 console.log("Vehicle selected:", autoId);
-
-                $('#finalAutoId').val(autoId);
-                console.log("Set finalAutoId to:", $('#finalAutoId').val());
+                $('#bookingAutoId').val(autoId);
 
                 // Visual feedback
                 $('.card').removeClass('border-primary border-3');
-                $(this).closest('.card').addClass('border-primary border-3');
+                $(`.card[data-auto-id="${autoId}"]`).addClass('border-primary border-3');
+
+                console.log("Current form state:", {
+                    autoId: $('#bookingAutoId').val(),
+                    pickUp: $('#bookingPickUpDate').val(),
+                    return: $('#bookingReturnDate').val()
+                });
+            };
+
+            // 3. Prevent form submission if not ready
+            $('#bookingForm').on('submit', function(e) {
+                console.log("Form submission attempted");
+
+                if (!$('#bookingAutoId').val()) {
+                    alert("Please select a vehicle first");
+                    e.preventDefault();
+                    return;
+                }
+
+                if (!$('#bookingPickUpDate').val() || !$('#bookingReturnDate').val()) {
+                    alert("Please check availability first");
+                    e.preventDefault();
+                    return;
+                }
+
+                console.log("Form submitting with:", {
+                    AutoId: $('#bookingAutoId').val(),
+                    PickUpDate: $('#bookingPickUpDate').val(),
+                    ReturnDate: $('#bookingReturnDate').val()
+                });
             });
 
             // 4. Date validation
             $('#PickUpDate, #ReturnDate').change(function() {
                 const pickUp = new Date($('#PickUpDate').val());
                 const ret = new Date($('#ReturnDate').val());
-                console.log("Date changed - PickUp:", pickUp, "Return:", ret);
 
                 if (pickUp >= ret) {
                     $('#autoSelection').html(
@@ -122,37 +138,6 @@
                     $('#bookingForm').addClass('d-none');
                 }
             });
-
-            // 5. Ensure final form has latest dates before submission
-            $('#bookingForm').submit(function(e) {
-                console.log("Final form submitting - verifying dates...");
-                console.log("PickUpDate:", $('#finalPickUpDate').val());
-                console.log("ReturnDate:", $('#finalReturnDate').val());
-
-                if (!$('#finalPickUpDate').val() || !$('#finalReturnDate').val()) {
-                    alert("Please check availability first");
-                    e.preventDefault();
-                }
-            });
         });
-
-        // Global function for vehicle selection
-        function selectAuto(autoId) {
-            console.log("selectAuto called with:", autoId);
-            $('#finalAutoId').val(autoId);
-
-            // Visual feedback
-            $('.card').removeClass('border-primary border-3');
-            $(`.card[data-auto-id="${autoId}"]`).addClass('border-primary border-3');
-
-            // Ensure form is visible
-            $('#bookingForm').removeClass('d-none');
-
-            console.log("Current form state:", {
-                autoId: $('#finalAutoId').val(),
-                pickUp: $('#finalPickUpDate').val(),
-                return: $('#finalReturnDate').val()
-            });
-        }
     </script>
 }
